@@ -1,0 +1,55 @@
+/* Temiz, tam ekran, light tema reseti */
+
+:root {
+  color-scheme: light;          /* Dark mode devre dışı */
+}
+
+/* Tüm kök katmanları doldur */
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #fff !important;  /* Beyaz arka plan */
+  color: #000;                  /* Koyu metin */
+}
+
+/* Body artık flex değil; içerik tam genişlikte akar */
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  display: block;
+  overflow: auto;               /* Gerekirse scroll olsun */
+}
+
+/* Vite default kısıtlarını iptal et */
+#root {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;              /* Vite’in max-width:1280px kuralını iptal eder */
+  margin: 0;
+  padding: 0;
+  text-align: initial;
+}
+
+/* Basit link ve buton stilleri (opsiyonel) */
+a {
+  color: #1677ff;
+  text-decoration: none;
+}
+a:hover {
+  color: #165996;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Başlık örneği (opsiyonel) */
+h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  margin: 0;
+}
