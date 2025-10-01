@@ -1,30 +1,18 @@
-import axios from 'axios';
-import type { LoginRequest, LoginResponse, RegisterRequest, User } from '../types/auth';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+import api from './http';
+import type { LoginRequest, LoginResponse, RegisterRequest } from '../types/auth';
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    const response = await axios.post(`${API_BASE_URL}/auth/login`, credentials, {
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    });
-    return response.data;
+    const res = await api.post<LoginResponse>('/auth/login', credentials);
+    return res.data;
   },
 
-  register: async (userData: RegisterRequest): Promise<User> => {
-    const response = await axios.post(`${API_BASE_URL}/auth/register`, userData, {
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    });
-    return response.data;
+  register: async (payload: RegisterRequest): Promise<void> => {
+    await api.post('/auth/register', payload);
   },
 
   refreshToken: async (refreshToken: string): Promise<LoginResponse> => {
-    const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, { refreshToken }, {
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    });
-    return response.data;
+    const res = await api.post<LoginResponse>('/auth/refresh-token', { refreshToken });
+    return res.data;
   },
-
-  // DİKKAT: /auth/me backend'de yoksa bunu eklemiyoruz/kullanmıyoruz
-  // me: async (): Promise<User> => { ... }
 };

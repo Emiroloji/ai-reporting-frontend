@@ -1,10 +1,14 @@
-// src/App.tsx
-
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage'; // DÜZELTİLDİ: ; tırnakların dışında
 import DashboardPage from './pages/DashboardPage';
+import ProfilePage from './pages/ProfilePage';
+import CreditsPage from './pages/CreditsPage';
+import ReportsPage from './pages/ReportsPage';
+import ReportDetailPage from './pages/ReportDetailPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import AppLayout from './components/layout/AppLayout';
 import { useAuth } from './hooks/useAuth';
 
 const App: React.FC = () => {
@@ -16,14 +20,20 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <div style={{ margin: 0, padding: 0, width: '100%', minHeight: '100vh' }}>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route element={<ProtectedRoute />}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/reports/:id" element={<ReportDetailPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/credits" element={<CreditsPage />} />
           </Route>
-        </Routes>
-      </div>
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </Router>
   );
 };
