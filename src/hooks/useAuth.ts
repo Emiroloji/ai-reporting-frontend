@@ -57,7 +57,7 @@ export const useAuth = create<AuthState>((set) => ({
     }
     set({ loading: true });
     try {
-      const me = await userService.getProfile();
+      const me = await userService.getMe();
       set({ user: me, loading: false, initialized: true });
     } catch {
       localStorage.removeItem('accessToken');

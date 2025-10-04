@@ -1,17 +1,19 @@
 import api from './http';
-import type { UserCredits, CreditTransaction } from '../types/credits';
+import type { CreditTransaction, CreditBalance, AddCreditRequest } from '../types/credits';
 
 export const creditService = {
-  getCredits: async (): Promise<UserCredits> => {
-    const res = await api.get<UserCredits>('/users/credits');
+  getMyCredits: async (): Promise<CreditBalance> => {
+    const res = await api.get<CreditBalance>('/credits/my');
     return res.data;
   },
+
   getCreditHistory: async (): Promise<CreditTransaction[]> => {
-    const res = await api.get<CreditTransaction[]>('/users/credit-history');
+    const res = await api.get<CreditTransaction[]>('/credits/history');
     return res.data;
   },
-  useCredits: async (data: { amount: number; reason?: string }): Promise<UserCredits> => {
-    const res = await api.post<UserCredits>('/credits/use', data);
+
+  addCredits: async (data: AddCreditRequest): Promise<CreditBalance> => {
+    const res = await api.post<CreditBalance>('/credits/add', data);
     return res.data;
   },
 };

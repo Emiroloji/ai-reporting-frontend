@@ -1,98 +1,123 @@
-import React from 'react';
-import { Card, Descriptions, Tag, Space, Button, Result, message } from 'antd';
-import { useParams } from 'react-router-dom';
-import { reportService } from '../services/reportService';
-import type { Report } from '../types/report';
-
-const statusColor: Record<Report['status'], string> = {
-  queued: 'default',
-  processing: 'blue',
-  completed: 'green',
-  failed: 'red',
-};
-
-const POLL_MS = 2000;
+import React, { useState, useEffect } from 'react';
+import { Card, Descriptions, Table, Button, message, Spin, Tag } from 'antd';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { analysisService } from '../services/analysisService';
+import type { AnalysisReport } from '../types/analysis';
 
 const ReportDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [report, setReport] = React.useState<Report | null>(null);
-  const [loading, setLoading] = React.useState(false);
+  const navigate = useNavigate();
+  const [report, setReport] = useState<AnalysisReport | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const load = React.useCallback(async () => {
-    if (!id) return;
-    setLoading(true);
-    try {
-      const r = await reportService.get(id);
-      setReport(r);
-    } catch {
-      message.error('Rapor bilgisi alınamadı');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (id) {
+      void fetchReport(parseInt(id, 10));
     }
   }, [id]);
 
-  React.useEffect(() => {
-    void load();
-  }, [load]);
+  const fetchReport = async (fileId: number) => {
+    setLoading(true);
+    try {
+      const data = await analysisService.getReport(fileId);
+      setReport(data);
+    } catch (error) {
+      message.error('Failed to load report');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Polling: processing/queued ise periyodik kontrol
-  React.useEffect(() => {
-    if (!report) return;
-    if (report.status === 'completed' || report.status === 'failed') return;
-    const t = setInterval(() => {
-      void load();
-    }, POLL_MS);
-    return () => clearInterval(t);
-  }, [report, load]);
-
-  if (!report) return <Card loading />;
-
-  if (report.status === 'failed') {
+  if (loading) {
     return (
-      <Result
-        status="error"
-        title="Rapor başarısız"
-        subTitle={report.errorMessage ?? 'Bilinmeyen hata'}
-        extra={
-          <Space>
-            <Button onClick={() => void load()}>Tekrar Dene</Button>
-          </Space>
-        }
-      />
+      <div style={{ textAlign: 'center', padding: '48px' }}>
+        <Spin size="large" />
+      </div>
     );
   }
 
-  return (
-    <Card title={`Rapor #${report.id}`} loading={loading}>
-      <Descriptions column={1} bordered size="middle">
-        <Descriptions.Item label="Ad">{report.name}</Descriptions.Item>
-        <Descriptions.Item label="Durum">
-          <Tag color={statusColor[report.status]}>{report.status}</Tag>
-        </Descriptions.Item>
-        <Descriptions.Item label="Kredi">
-          {report.creditsUsed ?? '-'}
-        </Descriptions.Item>
-        <Descriptions.Item label="Oluşturulma">
-          {report.createdAt}
-        </Descriptions.Item>
-        {report.prompt && (
-          <Descriptions.Item label="Prompt">
-            <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{report.prompt}</pre>
-          </Descriptions.Item>
-        )}
-      </Descriptions>
+  if (!report) {
+    return <Card>No report found</Card>;
+  }
 
-      <Space style={{ marginTop: 16 }}>
-        <Button
-          type="primary"
-          disabled={report.status !== 'completed'}
-          onClick={() => reportService.download(report.id)}
-        >
-          Çıktıyı İndir
-        </Button>
-        <Button onClick={() => void load()}>Yenile</Button>
-      </Space>
-    </Card>
+  const statisticsData = Object.entries(report.analysisData.statistics).map(([col, stats]) => ({
+    key: col,
+    column: col,
+    ...stats,
+  }));
+
+  const statisticsColumns = [
+    { title: 'Column', dataIndex: 'column', key: 'column', fixed: 'left' as const },
+    { title: 'Count', dataIndex: 'count', key: 'count' },
+    { title: 'Mean', dataIndex: 'mean', key: 'mean', render: (v?: number) => v?.toFixed(2) || '-' },
+    { title: 'Std', dataIndex: 'std', key: 'std', render: (v?: number) => v?.toFixed(2) || '-' },
+    { title: 'Min', dataIndex: 'min', key: 'min', render: (v?: number) => v?.toFixed(2) || '-' },
+    { title: 'Max', dataIndex: 'max', key: 'max', render: (v?: number) => v?.toFixed(2) || '-' },
+    { title: 'Unique', dataIndex: 'uniqueValues', key: 'uniqueValues' },
+    { title: 'Nulls', dataIndex: 'nullCount', key: 'nullCount' },
+  ];
+
+  return (
+    <div style={{ padding: '24px' }}>
+      <Card
+        title={
+          <div>
+            <Button
+              type="text"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate('/reports')}
+              style={{ marginRight: '16px' }}
+            />
+            Analysis Report
+          </div>
+        }
+      >
+        <Descriptions column={2} bordered style={{ marginBottom: '24px' }}>
+          <Descriptions.Item label="File Name">{report.fileName}</Descriptions.Item>
+          <Descriptions.Item label="Total Rows">{report.analysisData.rowCount}</Descriptions.Item>
+          <Descriptions.Item label="Columns">{report.analysisData.columns.length}</Descriptions.Item>
+          <Descriptions.Item label="Created">{new Date(report.createdAt).toLocaleString()}</Descriptions.Item>
+        </Descriptions>
+
+        <h3>Columns</h3>
+        <div style={{ marginBottom: '24px' }}>
+          {report.analysisData.columns.map((col) => (
+            <Tag key={col} color="blue" style={{ margin: '4px' }}>
+              {col}
+            </Tag>
+          ))}
+        </div>
+
+        <h3>Statistics</h3>
+        <Table
+          columns={statisticsColumns}
+          dataSource={statisticsData}
+          pagination={false}
+          scroll={{ x: 'max-content' }}
+          size="small"
+          style={{ marginBottom: '24px' }}
+        />
+
+        {report.analysisData.summary && (
+          <>
+            <h3>Summary</h3>
+            <p>{report.analysisData.summary}</p>
+          </>
+        )}
+
+        {report.analysisData.insights && report.analysisData.insights.length > 0 && (
+          <>
+            <h3>Insights</h3>
+            <ul>
+              {report.analysisData.insights.map((insight, idx) => (
+                <li key={idx}>{insight}</li>
+              ))}
+            </ul>
+          </>
+        )}
+      </Card>
+    </div>
   );
 };
 

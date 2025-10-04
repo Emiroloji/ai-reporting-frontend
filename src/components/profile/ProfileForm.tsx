@@ -30,7 +30,7 @@ const ProfileForm: React.FC = () => {
         firstName: values.firstName,
         lastName: values.lastName,
       });
-      message.success('Profil güncellendi');
+      message.success('Profile updated successfully');
     } catch {
       // Hata store'da set ediliyor
     }
@@ -47,25 +47,26 @@ const ProfileForm: React.FC = () => {
         <Input disabled />
       </Form.Item>
       <Form.Item<ProfileFormValues>
-        label="Ad"
+        label="First Name"
         name="firstName"
-        rules={[{ required: true, message: 'Ad zorunludur' }]}
+        rules={[{ required: true, message: 'First name is required' }]}
       >
         <Input />
       </Form.Item>
       <Form.Item<ProfileFormValues>
-        label="Soyad"
+        label="Last Name"
         name="lastName"
-        rules={[{ required: true, message: 'Soyad zorunludur' }]}
+        rules={[{ required: true, message: 'Last name is required' }]}
       >
         <Input />
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={loading}>
-          Kaydet
+          Save
         </Button>
       </Form.Item>
     </Form>
+  )
   );
 };
 

@@ -13,9 +13,10 @@ const AppLayout: React.FC = () => {
 
   const items = [
     { key: '/', label: <Link to="/">Dashboard</Link> },
-    { key: '/reports', label: <Link to="/reports">Raporlar</Link> },
-    { key: '/profile', label: <Link to="/profile">Profil</Link> },
-    { key: '/credits', label: <Link to="/credits">Krediler</Link> },
+    { key: '/files', label: <Link to="/files">Files</Link> },
+    { key: '/reports', label: <Link to="/reports">Reports</Link> },
+    { key: '/credits', label: <Link to="/credits">Credits</Link> },
+    { key: '/profile', label: <Link to="/profile">Profile</Link> },
   ];
 
   const selected =
@@ -24,7 +25,7 @@ const AppLayout: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh', background: '#fff' }}>
       <Header style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <div style={{ color: '#fff', fontWeight: 600, marginRight: 24 }}>AI Raporlama</div>
+        <div style={{ color: '#fff', fontWeight: 600, marginRight: 24 }}>AI Reporting Platform</div>
         <Menu
           theme="dark"
           mode="horizontal"
@@ -41,7 +42,7 @@ const AppLayout: React.FC = () => {
             navigate('/login', { replace: true });
           }}
         >
-          Çıkış
+          Logout
         </Button>
       </Header>
       <Content style={{ padding: 24 }}>

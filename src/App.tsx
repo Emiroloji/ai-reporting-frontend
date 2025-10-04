@@ -1,10 +1,13 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage'; // DÜZELTİLDİ: ; tırnakların dışında
+import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import CreditsPage from './pages/CreditsPage';
+import FilesPage from './pages/FilesPage';
+import FilePreviewPage from './pages/FilePreviewPage';
+import FileMappingPage from './pages/FileMappingPage';
 import ReportsPage from './pages/ReportsPage';
 import ReportDetailPage from './pages/ReportDetailPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -26,6 +29,9 @@ const App: React.FC = () => {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/files" element={<FilesPage />} />
+            <Route path="/files/:id/preview" element={<FilePreviewPage />} />
+            <Route path="/files/:id/mapping" element={<FileMappingPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/reports/:id" element={<ReportDetailPage />} />
             <Route path="/profile" element={<ProfilePage />} />

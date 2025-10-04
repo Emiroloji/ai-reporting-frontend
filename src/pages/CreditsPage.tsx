@@ -1,75 +1,113 @@
-import React from 'react';
-import { Card, Statistic, Row, Col, Button, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Card, Statistic, Row, Col, Button, message, Modal, Form, InputNumber, Input } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { creditService } from '../services/creditService';
 import CreditHistoryTable from '../components/credits/CreditHistoryTable';
-import type { UserCredits, CreditTransaction } from '../types/credits';
-
-const getErrorMessage = (err: unknown): string => {
-  if (err instanceof Error) return err.message;
-  if (typeof err === 'object' && err !== null) {
-    const maybe = err as { response?: { data?: { message?: string } } };
-    const msg = maybe.response?.data?.message;
-    if (typeof msg === 'string' && msg) return msg;
-  }
-  return 'Beklenmeyen hata';
-};
+import type { CreditBalance, CreditTransaction, AddCreditRequest } from '../types/credits';
 
 const CreditsPage: React.FC = () => {
-  const [credits, setCredits] = React.useState<UserCredits | null>(null);
-  const [history, setHistory] = React.useState<CreditTransaction[]>([]);
-  const [loading, setLoading] = React.useState(false);
+  const [balance, setBalance] = useState<CreditBalance | null>(null);
+  const [history, setHistory] = useState<CreditTransaction[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [form] = Form.useForm();
 
-  const load = React.useCallback(async () => {
+  const load = async () => {
     setLoading(true);
     try {
-      const [c, h] = await Promise.all([
-        creditService.getCredits(),
+      const [creditData, historyData] = await Promise.all([
+        creditService.getMyCredits(),
         creditService.getCreditHistory(),
       ]);
-      setCredits(c);
-      setHistory(h);
-    } catch (e: unknown) {
-      message.error(getErrorMessage(e) || 'Kredi bilgisi alınamadı');
+      setBalance(creditData);
+      setHistory(historyData);
+    } catch (error) {
+      message.error('Failed to load credit information');
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    void load();
   }, []);
 
-  React.useEffect(() => {
-    void load();
-  }, [load]);
-
-  const handleUseOne = async () => {
+  const handleAddCredits = async (values: AddCreditRequest) => {
     try {
-      await creditService.useCredits({ amount: 1, reason: 'Demo işlem' });
-      message.success('1 kredi kullanıldı');
-      await load();
-    } catch (e: unknown) {
-      message.error(getErrorMessage(e) || 'Kredi kullanımı başarısız');
+      await creditService.addCredits(values);
+      message.success('Credits added successfully');
+      setModalVisible(false);
+      form.resetFields();
+      void load();
+    } catch (error) {
+      message.error('Failed to add credits');
     }
   };
 
   return (
-    <div style={{ padding: 0 }}>
+    <div style={{ padding: '24px' }}>
       <Row gutter={[16, 16]}>
         <Col xs={24} md={8}>
-          <Card title="Kredi Durumu" variant="outlined" loading={loading}>
-            <Row gutter={16}>
-              <Col span={8}><Statistic title="Toplam" value={credits?.total ?? 0} /></Col>
-              <Col span={8}><Statistic title="Kullanılan" value={credits?.used ?? 0} /></Col>
-              <Col span={8}><Statistic title="Kalan" value={credits?.remaining ?? 0} /></Col>
-            </Row>
-            <Button type="primary" style={{ marginTop: 16 }} onClick={handleUseOne}>
-              1 Kredi Kullan
-            </Button>
+          <Card
+            title="Credit Balance"
+            loading={loading}
+            extra={
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setModalVisible(true)}
+              >
+                Add Credits
+              </Button>
+            }
+          >
+            <Statistic
+              title="Available Credits"
+              value={balance?.balance ?? 0}
+              valueStyle={{ color: '#3f8600' }}
+            />
+            <p style={{ marginTop: '16px', color: '#666' }}>
+              Last updated: {balance?.lastUpdated ? new Date(balance.lastUpdated).toLocaleString() : '-'}
+            </p>
           </Card>
         </Col>
         <Col xs={24} md={16}>
-          <Card title="Kredi Geçmişi" variant="outlined">
+          <Card title="Credit History">
             <CreditHistoryTable data={history} loading={loading} />
           </Card>
         </Col>
       </Row>
+
+      <Modal
+        title="Add Credits"
+        open={modalVisible}
+        onCancel={() => {
+          setModalVisible(false);
+          form.resetFields();
+        }}
+        footer={null}
+      >
+        <Form form={form} onFinish={handleAddCredits} layout="vertical">
+          <Form.Item
+            name="amount"
+            label="Amount"
+            rules={[
+              { required: true, message: 'Please enter amount' },
+              { type: 'number', min: 1, message: 'Amount must be at least 1' },
+            ]}
+          >
+            <InputNumber min={1} style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="description" label="Description">
+            <Input.TextArea rows={3} placeholder="Optional description" />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block>
+              Add Credits
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

@@ -1,7 +1,3 @@
-
-// src/types/auth.ts
-
-// Önce types dosyasını düzeltelim
 export interface LoginRequest {
   email: string;
   password: string;
@@ -26,5 +22,6 @@ export interface User {
   firstName: string;
   lastName: string;
   role: string;
-  credits?: number;
+  credits: number;
+  createdAt?: string;
 }
