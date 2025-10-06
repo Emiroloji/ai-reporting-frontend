@@ -66,7 +66,6 @@ const ProfileForm: React.FC = () => {
         </Button>
       </Form.Item>
     </Form>
-  )
   );
 };
 
